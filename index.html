@@ -15,14 +15,35 @@
   <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13.5 2 4 13.5h6.5L9.5 22 20 9.5h-6.5z"/></svg></div>
   <h1 id="title">Connect uWallet to Nostr</h1>
   <p id="lead" class="lead"></p>
-  <ul id="steps" class="steps" hidden></ul>
+
+  <section id="trust" class="trust" aria-label="How this page keeps you safe">
+    <p class="trust-head">A bridge between uWallet and your Nostr extension</p>
+    <ul>
+      <li><b>Your Nostr key stays in your Nostr extension.</b> This page never sees it.</li>
+      <li><b>This page can’t send anything anywhere.</b> It has no server, and its security policy blocks every network request.</li>
+      <li><b>Nothing happens without you.</b> Each request is explained below, and your Nostr extension asks before it signs.</li>
+    </ul>
+  </section>
+
+  <section id="plan-box" class="plan" hidden>
+    <p class="plan-head">uWallet will ask for</p>
+    <ol id="plan"></ol>
+  </section>
+
+  <section id="detail" class="detail" hidden aria-live="polite">
+    <p class="detail-head" id="detail-head"></p>
+    <ul id="detail-list"></ul>
+  </section>
+
   <div id="ask" class="ask" hidden>
-    <p id="ask-text"></p>
+    <p id="ask-text" class="ask-text"></p>
+    <ul id="ask-points"></ul>
     <div class="row"><button id="ask-no" class="btn"></button><button id="ask-yes" class="btn primary"></button></div>
   </div>
+
   <p id="status" class="status" role="status"></p>
   <button id="go" class="btn primary" hidden>Continue with my Nostr extension</button>
-  <p id="fine" class="fine">Your Nostr private key never leaves your Nostr extension. This page only passes uWallet’s requests to it, and has no server of its own. <a href="https://github.com/iefanx/uwallet-connect" target="_blank" rel="noreferrer">Source</a></p>
+  <p id="fine" class="fine">Open source, static files only. Check the address bar shows <b>iefanx.github.io/uwallet-connect</b>. <a href="https://github.com/iefanx/uwallet-connect" target="_blank" rel="noreferrer">View the source</a></p>
 </main>
 <script src="connect.js"></script>
 </body>
