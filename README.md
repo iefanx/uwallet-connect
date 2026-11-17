@@ -11,3 +11,8 @@ Before every signature the page lists what is being signed, read from the event 
 - The backup is a NIP-78 (kind 30078, `d=uwallet-backup`) event signed by you, with the recovery phrase NIP-44-encrypted to your own pubkey using a one-time key. uWallet builds and checks it; the page only forwards it.
 
 Static files only: `index.html`, `connect.js`, `style.css`.
+
+## Dashboard
+
+Opened directly (from uWallet → Settings → uWallet Connect), the page shows this wallet's Nostr setup: wallet status, linked Nostr account, the Lightning address on Nostr, and a guide for using your own domain. It reads only a public summary from uWallet and can open uWallet screens; anything that touches keys still starts inside uWallet.
+
