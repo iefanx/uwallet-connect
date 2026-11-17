@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- This page talks only to your Nostr extension and to uWallet. It loads nothing from
+     anywhere else and cannot send data to any server (connect-src 'none'). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' chrome-extension:; style-src 'self'; img-src 'self' data:; connect-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>uWallet · Connect Nostr</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13.5 2 4 13.5h6.5L9.5 22 20 9.5h-6.5z"/></svg></div>
+  <h1 id="title">Connect uWallet to Nostr</h1>
+  <p id="lead" class="lead"></p>
+  <ul id="steps" class="steps" hidden></ul>
+  <div id="ask" class="ask" hidden>
+    <p id="ask-text"></p>
+    <div class="row"><button id="ask-no" class="btn"></button><button id="ask-yes" class="btn primary"></button></div>
+  </div>
+  <p id="status" class="status" role="status"></p>
+  <button id="go" class="btn primary" hidden>Continue with my Nostr extension</button>
+  <p class="fine">Your Nostr private key never leaves your Nostr extension. This page only passes uWallet’s requests to it, and has no server of its own. <a href="https://github.com/iefanx/uwallet-connect" target="_blank" rel="noreferrer">Source</a></p>
+</main>
+<script src="connect.js"></script>
+</body>
+</html>
