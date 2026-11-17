@@ -96,7 +96,9 @@
       if (m.status) return status(m.status);
       if (m.done) {
         if ($('steps').lastElementChild) $('steps').lastElementChild.classList.add('done');
-        return status(m.done, 'ok');
+        status(m.done, 'ok');
+        $('fine').hidden = true;
+        return;
       }
       if (m.fail) return status(m.fail, 'bad');
       if (typeof m.id !== 'number') return;
