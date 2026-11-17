@@ -15,7 +15,7 @@
 <body>
 <header class="bar">
   <button class="icon-btn" id="back" aria-label="Back to uWallet" title="Back to uWallet" hidden><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg></button>
-  <b id="title">uWallet</b>
+  <span class="grow"></span>
   <span class="icon-btn lock" title="Your Nostr key stays in your Nostr extension. This page can’t send data anywhere."><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
 </header>
 <main class="page" aria-live="polite">
@@ -24,7 +24,10 @@
     <span class="wire"><i></i><i></i><i></i></span>
     <span class="node key" id="key-node"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M15 8l2 2"/></svg></span>
   </div>
-  <p id="lead" class="lead"></p>
+  <div class="head">
+    <h1 id="title">uWallet</h1>
+    <p id="lead" class="lead"></p>
+  </div>
   <div id="who" class="who" hidden>
     <span class="av" id="who-av"></span>
     <span class="who-t"><b id="who-name"></b><small id="who-npub"></small></span>

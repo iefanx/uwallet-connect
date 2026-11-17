@@ -20,27 +20,29 @@ a { color: var(--accent-strong); text-decoration: none; }
 button { font: inherit; color: inherit; }
 
 /* Top bar, like uWallet's own screens. */
-.bar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 4px; padding: 8px 8px 4px; min-height: 48px; background: var(--bg); max-width: 456px; margin: 0 auto; }
-.bar b { flex: 1; text-align: center; font-size: 15px; font-weight: 650; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body { min-height: 100vh; display: flex; flex-direction: column; }
+.bar { display: flex; align-items: center; gap: 4px; padding: 8px 8px 0; min-height: 48px; width: 100%; max-width: 456px; margin: 0 auto; }
+.grow { flex: 1; }
 .icon-btn { width: 36px; height: 36px; border-radius: 11px; border: 0; background: transparent; display: grid; place-items: center; color: var(--text-2); cursor: pointer; flex: none; }
 .icon-btn:hover { background: var(--surface-2); color: var(--text); }
 .icon-btn svg { width: 20px; height: 20px; }
 .lock, .lock:hover { color: var(--ok); background: transparent; cursor: default; }
 .lock svg { width: 17px; height: 17px; }
-/* Keeps the title centred when Back is hidden. */
-.bar:has(#back[hidden])::before { content: ""; width: 36px; flex: none; }
 
-.page { max-width: 440px; margin: 0 auto; padding: 10px 16px max(18px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 18px; animation: rise .2s ease-out; }
+.page { flex: 1; width: 100%; max-width: 440px; margin: 0 auto; padding: 4px 16px max(16px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 16px; animation: rise .2s ease-out; }
 @keyframes rise { from { opacity: 0; transform: translateY(4px); } }
-.lead { margin: -6px 0 0; color: var(--muted); text-align: center; text-wrap: balance; font-size: 13.5px; }
+.head { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; margin-top: -4px; }
+h1 { margin: 0; font-size: 22px; letter-spacing: -0.02em; line-height: 1.25; }
+.lead { margin: 0; color: var(--text-2); text-wrap: balance; max-width: 290px; }
 .lead:empty { display: none; }
 
 .bridge { display: flex; align-items: center; justify-content: center; gap: 10px; }
-.node { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font-weight: 700; font-size: 18px; color: #fff; }
-.node svg { width: 22px; height: 22px; }
-.node.app { background: linear-gradient(150deg, #ffb253, #f7931a 55%, #e27c00); }
+.node { width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center; font-weight: 700; font-size: 18px; color: #fff; }
+.node svg { width: 27px; height: 27px; }
+.bridge { padding: 8px 0 4px; }
+.node.app { background: linear-gradient(150deg, #ffb253, #f7931a 55%, #e27c00); box-shadow: 0 10px 28px rgb(247 147 26 / .32); }
 .node.app svg { fill: #fff; stroke: none; }
-.node.key { background: linear-gradient(150deg, #a78bfa, #7c3aed); }
+.node.key { background: linear-gradient(150deg, #a78bfa, #7c3aed); box-shadow: 0 10px 28px rgb(124 58 237 / .3); font-size: 22px; }
 .wire { display: flex; gap: 6px; }
 .wire i { width: 6px; height: 6px; border-radius: 50%; background: var(--border); }
 .busy .wire i { animation: pulse 1.2s infinite ease-in-out; background: var(--accent); }
@@ -55,12 +57,12 @@ button { font: inherit; color: inherit; }
 .who-t b { font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .who-t small { font-size: 11.5px; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 
-.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.steps { list-style: none; margin: 0; padding: 14px 16px; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; }
 .steps li { display: grid; grid-template-columns: 22px 1fr; column-gap: 12px; position: relative; padding-bottom: 14px; color: var(--muted); }
 .steps li:last-child { padding-bottom: 0; }
 .steps li::after { content: ""; position: absolute; left: 10.5px; top: 24px; bottom: 2px; width: 1px; background: var(--border); }
 .steps li:last-child::after { display: none; }
-.dot { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border); display: grid; place-items: center; background: var(--bg); position: relative; z-index: 1; }
+.dot { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border); display: grid; place-items: center; background: var(--surface); position: relative; z-index: 1; }
 .dot svg { width: 13px; height: 13px; stroke-width: 2.6; opacity: 0; }
 .steps .lbl { padding-top: 1px; }
 .steps .sub { grid-column: 2; font-size: 12.5px; color: var(--muted); }
@@ -74,6 +76,7 @@ button { font: inherit; color: inherit; }
 .steps li.failed .dot { border-color: var(--bad); }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+.panel { margin-top: auto; }
 .panel:empty { display: none; }
 .box { border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 12px; background: var(--surface-2); animation: rise .2s ease-out; }
 .box.approve { background: var(--accent-soft); }
