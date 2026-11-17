@@ -2,7 +2,7 @@
 
 The companion page that lets the [uWallet](https://chromewebstore.google.com/) browser extension link a wallet to your Nostr account, log in with Nostr, or publish a Lightning address owned by your Nostr key.
 
-uWallet opens this page in a small window. The page connects back to uWallet (Chrome `externally_connectable`) and passes uWallet's requests to your Nostr extension (NIP-07 `window.nostr`): read your public key, sign the encrypted wallet backup, open (NIP-44 decrypt) the backup, or sign a Blossom upload permission (kind 24242) and a named-site manifest (NIP-5A kind 35128) for the Lightning address.
+uWallet opens this page in a tab. It starts by itself once your Nostr extension is found, shows each step, and closes when done. The page connects back to uWallet (Chrome `externally_connectable`) and passes uWallet's requests to your Nostr extension (NIP-07 `window.nostr`): read your public key, sign the encrypted wallet backup, open (NIP-44 decrypt) the backup, or sign a Blossom upload permission (kind 24242) and a named-site manifest (NIP-5A kind 35128) for the Lightning address.
 
 Before every signature the page lists what is being signed, read from the event itself (kind, servers, files, expiry), not from what uWallet says.
 
