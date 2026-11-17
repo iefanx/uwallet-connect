@@ -15,6 +15,8 @@
   const params = new URLSearchParams(location.hash.slice(1));
   const session = params.get('s') || '';
   const op = params.get('op') || '';
+  // Shown inside the uWallet window (uWallet navigates its own window here and back).
+  const compact = params.get('w') === '1' && !!session;
   const EXT_RE = /^[a-p]{32}$/;
 
   // The extension id: from uWallet's link, else remembered from an earlier visit.
@@ -195,6 +197,12 @@
       return;
     }
     const [title, lead] = COPY[op] || ['Continue with Nostr', 'uWallet needs your Nostr extension for this.'];
+    if (compact) {
+      document.body.classList.add('compact');
+      $('bar').hidden = false;
+      $('bar-title').textContent = title;
+      $('back').onclick = goBack;
+    }
     $('title').textContent = title;
     $('lead').textContent = lead;
     document.title = `${title} · uWallet`;
@@ -243,10 +251,20 @@
 
     let port = null;
     let finished = false;
+    // Back to uWallet: uWallet cancels this session and returns its window to the wallet.
+    // (A web page can't open uWallet's pages itself, so it asks uWallet to.)
+    function goBack() {
+      try {
+        const p = port || chrome.runtime.connect(ext, { name: 'uwallet-companion' });
+        p.postMessage({ back: session });
+      } catch { /* uWallet unreachable */ }
+      setTimeout(() => history.back(), 800);
+    }
+    const backBtn = () => (compact ? h('button', { class: 'btn', onclick: goBack }, 'Back to uWallet') : null);
     const fail = (text, retry) => {
       mood('');
       failStep();
-      panel(box('bad', IC.alert, 'That didn’t work', text, retry ? h('div', { class: 'row' }, h('button', { class: 'btn primary', onclick: retry }, 'Try again')) : null));
+      panel(box('bad', IC.alert, 'That didn’t work', text, h('div', { class: 'row' }, backBtn(), retry ? h('button', { class: 'btn primary', onclick: retry }, 'Try again') : null)));
     };
 
     const connect = () => {
@@ -256,7 +274,7 @@
       try {
         port = chrome.runtime.connect(ext, { name: 'uwallet-companion' });
       } catch {
-        return fail('Couldn’t reach uWallet. Make sure the extension is installed and turned on, then start again from uWallet.');
+        return fail(compact ? 'Couldn’t reach uWallet. Go back and start again.' : 'Couldn’t reach uWallet. Make sure the extension is installed and turned on, then start again from uWallet.');
       }
       const p = port;
       const ping = setInterval(() => p.postMessage({ ping: 1 }), 15000);
@@ -264,7 +282,7 @@
         clearInterval(ping);
         if (port !== p) return;
         port = null;
-        if (!finished) fail('uWallet ended the session. Start again from uWallet.');
+        if (!finished) fail(compact ? 'uWallet ended this. Go back and start again.' : 'uWallet ended the session. Start again from uWallet.');
       });
       p.onMessage.addListener(async (m) => {
         if (!m || typeof m !== 'object' || port !== p) return;
@@ -279,7 +297,7 @@
           finished = true;
           allDone();
           mood('ok');
-          return panel(box('done', IC.check, String(m.done), 'Taking you back to uWallet…'));
+          return panel(box('done', IC.check, String(m.done), 'Returning to uWallet…'));
         }
         if (m.fail)
           return fail(String(m.fail), () => {
@@ -307,7 +325,7 @@
     waitForNostr().then((n) => {
       if (n) return connect();
       mood('');
-      panel(box('bad', IC.plug, 'No Nostr extension found', 'Install one, then reload this page.', nostrLinks(), h('div', { class: 'row' }, h('button', { class: 'btn primary', onclick: () => location.reload() }, 'Reload'))));
+      panel(box('bad', IC.plug, 'No Nostr extension found', 'Install one, then reload this page.', nostrLinks(), h('div', { class: 'row' }, backBtn(), h('button', { class: 'btn primary', onclick: () => location.reload() }, 'Reload'))));
     });
   }
 

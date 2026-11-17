@@ -13,6 +13,12 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<!-- Inside the uWallet window: a bar like the wallet's own screens. -->
+<header class="bar" id="bar" hidden>
+  <button class="icon-btn" id="back" aria-label="Back to uWallet" title="Back to uWallet"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg></button>
+  <b id="bar-title">uWallet</b>
+  <span class="icon-btn lock" title="Your Nostr key stays in your Nostr extension. This page can’t send data anywhere."><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
+</header>
 <header class="top">
   <div class="brand">
     <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13.5 2 4 13.5h6.5L9.5 22 20 9.5h-6.5z"/></svg></span>

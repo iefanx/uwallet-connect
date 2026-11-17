@@ -198,3 +198,22 @@ details.more li.code { font-family: ui-monospace, SFMono-Regular, Menlo, monospa
   .hub-head h1 { font-size: 24px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* ---------- inside the uWallet window ---------- */
+.bar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 4px; padding: 8px 8px 4px; min-height: 48px; background: var(--bg); }
+.bar b { flex: 1; text-align: center; font-size: 15px; font-weight: 650; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar .icon-btn { width: 36px; height: 36px; border-radius: 11px; border: 0; background: transparent; display: grid; place-items: center; color: var(--text-2); cursor: pointer; flex: none; }
+.bar .icon-btn:hover { background: var(--surface-2); color: var(--text); }
+.bar .icon-btn svg { width: 20px; height: 20px; }
+.bar .lock { color: var(--ok); cursor: default; }
+.bar .lock:hover { background: transparent; color: var(--ok); }
+.bar .lock svg { width: 17px; height: 17px; }
+body.compact { background: var(--bg); font-size: 14px; }
+body.compact .top, body.compact .trust, body.compact .foot, body.compact h1 { display: none; }
+body.compact .stage { padding: 6px 16px max(18px, env(safe-area-inset-bottom)); gap: 0; }
+body.compact .card { max-width: 440px; background: transparent; border: 0; box-shadow: none; border-radius: 0; padding: 10px 0 0; gap: 18px; animation-duration: .2s; }
+body.compact .lead { margin: -6px 0 0; font-size: 13.5px; }
+body.compact .node { width: 46px; height: 46px; border-radius: 14px; font-size: 18px; }
+body.compact .node svg { width: 22px; height: 22px; }
+body.compact .steps li { font-size: 14px; }
+body.compact .row .btn { min-width: 0; }
