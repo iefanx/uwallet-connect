@@ -3,55 +3,34 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<!-- This page talks only to your Nostr extension and to uWallet. It loads nothing from
-     anywhere else and cannot send data to any server (connect-src 'none'). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' chrome-extension:; style-src 'self'; img-src 'self' data:; connect-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+<!-- This page only passes requests between uWallet and your Nostr extension. It loads nothing
+     from anywhere else and cannot send data to any server (connect-src 'none'). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
-<title>uWallet Connect</title>
+<title>uWallet · Nostr</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23f7931a'/%3E%3Cpath d='M18 4 7 18h8l-1.5 10L25 13h-8z' fill='white'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<!-- Inside the uWallet window: a bar like the wallet's own screens. -->
-<header class="bar" id="bar" hidden>
-  <button class="icon-btn" id="back" aria-label="Back to uWallet" title="Back to uWallet"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg></button>
-  <b id="bar-title">uWallet</b>
+<header class="bar">
+  <button class="icon-btn" id="back" aria-label="Back to uWallet" title="Back to uWallet" hidden><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg></button>
+  <b id="title">uWallet</b>
   <span class="icon-btn lock" title="Your Nostr key stays in your Nostr extension. This page can’t send data anywhere."><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
 </header>
-<header class="top">
-  <div class="brand">
-    <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13.5 2 4 13.5h6.5L9.5 22 20 9.5h-6.5z"/></svg></span>
-    <span>uWallet</span><span class="brand-tag">Connect</span>
+<main class="page" aria-live="polite">
+  <div class="bridge" id="bridge" aria-hidden="true">
+    <span class="node app"><svg viewBox="0 0 24 24"><path d="M13.5 2 4 13.5h6.5L9.5 22 20 9.5h-6.5z"/></svg></span>
+    <span class="wire"><i></i><i></i><i></i></span>
+    <span class="node key" id="key-node"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M15 8l2 2"/></svg></span>
   </div>
-  <span class="secure"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> Secure bridge</span>
-</header>
-
-<main class="stage">
-  <section id="card" class="card" aria-live="polite">
-    <div class="bridge" aria-hidden="true">
-      <span class="node app"><svg viewBox="0 0 24 24"><path d="M13.5 2 4 13.5h6.5L9.5 22 20 9.5h-6.5z"/></svg></span>
-      <span class="wire"><i></i><i></i><i></i></span>
-      <span class="node key" id="key-node"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M15 8l2 2"/></svg></span>
-    </div>
-    <h1 id="title">uWallet Connect</h1>
-    <p id="lead" class="lead"></p>
-    <div id="who" class="who" hidden>
-      <span class="who-av" id="who-av"></span>
-      <span class="who-t"><b id="who-name"></b><small id="who-npub"></small></span>
-    </div>
-    <ol id="steps" class="steps"></ol>
-    <div id="panel" class="panel"></div>
-  </section>
-
-  <section id="hub" class="hub" hidden></section>
-
-  <ul class="trust" aria-label="How this page keeps you safe">
-    <li><span class="ti"><svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.4 3 8.4 7 9.5 4-1.1 7-5.1 7-9.5V6z"/><path d="m9 12 2 2 4-4"/></svg></span><span><b>Key stays put</b>Your Nostr key never leaves your Nostr extension.</span></li>
-    <li><span class="ti"><svg viewBox="0 0 24 24"><path d="M4 12h16M12 4v16" transform="rotate(45 12 12)"/><circle cx="12" cy="12" r="9"/></svg></span><span><b>No server</b>This page can’t send data anywhere.</span></li>
-    <li><span class="ti"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg></span><span><b>You approve</b>Your extension asks before every signature.</span></li>
-  </ul>
-  <p class="foot"><a href="https://github.com/iefanx/uwallet-connect" target="_blank" rel="noreferrer">Open source</a> · static page at iefanx.github.io/uwallet-connect</p>
+  <p id="lead" class="lead"></p>
+  <div id="who" class="who" hidden>
+    <span class="av" id="who-av"></span>
+    <span class="who-t"><b id="who-name"></b><small id="who-npub"></small></span>
+  </div>
+  <ol id="steps" class="steps"></ol>
+  <div id="panel" class="panel"></div>
 </main>
 <script src="connect.js"></script>
 </body>
