@@ -26,7 +26,14 @@
     <span class="wire" aria-hidden="true"><i></i><i></i><i></i></span>
   </div>
   <p id="lead" class="lead"></p>
-  <ol id="steps" class="steps"></ol>
+  <!-- Progress: one segment per step, and the current step in words. -->
+  <div class="track" id="track">
+    <div class="segs" id="segs"></div>
+    <div class="now">
+      <span class="now-ic" id="now-ic"></span>
+      <span class="now-t"><b id="now-label">Getting ready…</b><small id="now-sub"></small></span>
+    </div>
+  </div>
   <div id="panel" class="panel"></div>
 </main>
 <script src="connect.js"></script>

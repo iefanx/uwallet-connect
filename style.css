@@ -37,27 +37,11 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 .busy .busy .busy .ok @keyframes pulse { 0%, 100% { opacity: .25; transform: scale(.8); } 50% { opacity: 1; transform: scale(1); } }
 
 
-.steps { list-style: none; margin: 0; padding: 12px 14px; font-size: 13.5px; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; }
-.steps li { display: grid; grid-template-columns: 20px 1fr; column-gap: 10px; position: relative; padding-bottom: 10px; color: var(--muted); }
-.steps li:last-child { padding-bottom: 0; }
-.steps li::after { content: ""; position: absolute; left: 9.5px; top: 22px; bottom: 2px; width: 1px; background: var(--border); }
-.steps li:last-child::after { display: none; }
-.dot { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--border); display: grid; place-items: center; background: var(--surface); position: relative; z-index: 1; }
-.dot svg { width: 12px; height: 12px; stroke-width: 2.6; opacity: 0; }
-.steps .lbl { padding-top: 1px; }
-.steps .sub { grid-column: 2; font-size: 12px; color: var(--muted); font-weight: 400; }
-.steps .sub:empty { display: none; }
-.steps li.active { color: var(--text); font-weight: 600; }
-.steps li.active .dot { border-color: var(--accent); border-top-color: transparent; animation: spin .8s linear infinite; }
-.steps li.done { color: var(--text-2); }
-.steps li.done .dot { background: var(--ok); border-color: var(--ok); color: #fff; }
-.steps li.done .dot svg { opacity: 1; }
-.steps li.failed { color: var(--bad); }
-.steps li.failed .dot { border-color: var(--bad); }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .panel { margin-top: auto; }
 .panel:empty { display: none; }
+.panel:has(.ask) { margin-top: 0; }
 .box { border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px; background: var(--surface-2); animation: rise .2s ease-out; }
 .box.approve { background: var(--accent-soft); }
 .box.done { background: var(--ok-soft); }
@@ -101,14 +85,50 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 .busy .wire i:nth-child(3) { animation-delay: .3s; }
 .ok .wire i { background: var(--ok); }
 
-/* A question (no wallet yet): one main action, the alternatives as quiet rows. */
-.ask { display: flex; flex-direction: column; gap: 6px; animation: rise .2s ease-out; }
-.ask > b { font-size: 16px; letter-spacing: -0.01em; }
-.ask > p { margin: 0; color: var(--text-2); font-size: 13px; }
-.choices { display: flex; flex-direction: column; margin-top: 8px; }
-.choices .btn { flex: none; width: 100%; margin-bottom: 4px; }
-.alt { display: flex; align-items: center; justify-content: space-between; width: 100%; height: 40px; padding: 0 4px; border: 0; border-top: 1px solid var(--border); background: none; cursor: pointer; font-size: 13.5px; font-weight: 500; color: var(--text-2); text-align: left; }
-.alt:hover { color: var(--text); }
-.alt .chev { color: var(--muted); display: grid; }
-.alt .chev svg { width: 15px; height: 15px; }
-.alt:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 8px; }
+
+/* Progress: a segment per step that fills in, and the current step in words. */
+.track { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); }
+.segs { display: flex; gap: 6px; }
+.segs i { flex: 1; height: 4px; border-radius: 4px; background: var(--surface-2); position: relative; overflow: hidden; }
+.segs i::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .45s cubic-bezier(.2,.8,.2,1), background .3s; }
+.segs i.done::after { transform: scaleX(1); }
+.segs i.active::after { transform: scaleX(.45); animation: seg 1.4s ease-in-out infinite; }
+.segs i.bad::after { transform: scaleX(1); background: var(--bad); }
+.track.ok .segs i::after { background: var(--ok); }
+@keyframes seg { 0%, 100% { transform: scaleX(.3); } 50% { transform: scaleX(.75); } }
+.now { display: flex; align-items: center; gap: 12px; min-height: 40px; }
+.now-ic { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; flex: none; background: var(--accent-soft); color: var(--accent-strong); }
+.now-ic .spin { width: 16px; height: 16px; }
+.now-ic svg { width: 18px; height: 18px; }
+.now-t { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.now-t b { font-size: 14.5px; letter-spacing: -0.005em; }
+.now-t small { font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+.now-t small:empty { display: none; }
+.track.ok .now-ic { background: var(--ok); color: #fff; animation: pop .35s cubic-bezier(.2,1.5,.5,1); }
+.track.ok .now-ic svg { stroke-width: 2.8; }
+.track.ok .now-t b { color: var(--ok); }
+.track.bad .now-ic { background: var(--bad-soft); color: var(--bad); }
+.track.bad .now-t small { color: var(--text-2); }
+.track.wait .now-ic { background: var(--surface-2); color: var(--text-2); }
+.track.wait .segs i.active::after { animation: none; transform: scaleX(.5); }
+.draw { stroke-dasharray: 24; stroke-dashoffset: 24; animation: draw .4s .12s ease-out forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes pop { from { transform: scale(.6); opacity: 0; } }
+
+/* A question (no wallet yet): cards like uWallet's own choices. */
+.ask { display: flex; flex-direction: column; gap: 10px; animation: rise .2s ease-out; }
+.ask > p { margin: 0 2px; color: var(--text-2); font-size: 13px; }
+.choices { display: flex; flex-direction: column; gap: 8px; }
+.choice { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; text-align: left; transition: border-color .12s, background .12s; }
+.choice:hover { border-color: var(--accent); }
+.choice:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.choice .ic { width: 34px; height: 34px; border-radius: 10px; background: var(--surface-2); color: var(--text-2); display: grid; place-items: center; flex: none; }
+.choice .ic svg { width: 17px; height: 17px; }
+.choice .t { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.choice b { font-size: 14px; }
+.choice small { font-size: 12px; color: var(--muted); }
+.choice .chev { color: var(--muted); display: grid; }
+.choice .chev svg { width: 15px; height: 15px; }
+.choice.primary { border-color: var(--accent); background: var(--accent-soft); }
+.choice.primary .ic { background: var(--accent); color: #fff; }
+.choice.primary .ic svg { fill: #fff; stroke: none; }

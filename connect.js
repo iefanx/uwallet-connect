@@ -17,6 +17,9 @@
   const svg = (d) => `<svg viewBox="0 0 24 24">${d}</svg>`;
   const IC = {
     check: svg('<path d="M20 6 9 17l-5-5"/>'),
+    bolt: svg('<path d="M13.5 2 4 13.5h6.5L9.5 22 20 9.5h-6.5z"/>'),
+    swap: svg('<path d="M7 7h11l-3-3M17 17H6l3 3"/>'),
+    wallet: svg('<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16 14.5h2"/>'),
     key: svg('<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M15 8l2 2"/>'),
     pen: svg('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>'),
     lock: svg('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'),
@@ -37,7 +40,6 @@
   const panel = (...nodes) => $('panel').replaceChildren(...nodes.filter(Boolean));
   const box = (kind, icon, title, text, ...rest) =>
     h('div', { class: `box ${kind}` }, h('div', { class: 'box-head' }, h('span', { class: 'box-ic', html: icon }), h('div', { class: 'box-t' }, h('b', {}, title), text ? h('span', {}, text) : null)), ...rest);
-  const waitBox = (text) => box('', '<span class="spin"></span>', text, '');
   const busy = (on) => $('who').classList.toggle('busy', on);
 
   const COPY = {
@@ -56,31 +58,33 @@
   void lead; // the title says it; the step list shows the rest
   document.title = `${title} · uWallet`;
 
-  // ---------- steps ----------
-  const newStep = (key, label) => {
-    const s = { key, li: h('li', {}, h('span', { class: 'dot', html: IC.check }), h('span', { class: 'lbl' }, label), h('span', { class: 'sub' })) };
-    $('steps').append(s.li);
-    return s;
+  // ---------- progress: segments + the current step ----------
+  const CHECK = '<svg viewBox="0 0 24 24"><path class="draw" d="M5 12.5 10 17 19 7.5"/></svg>';
+  const steps = plan.map(([key, label]) => ({ key, label }));
+  let at = -1;
+  const paint = (state) => {
+    $('segs').replaceChildren(...steps.map((x, i) => h('i', { class: state === 'ok' || i < at ? 'done' : i === at ? (state === 'bad' ? 'bad' : 'active') : '' })));
+    $('track').className = `track ${state || ''}`;
   };
-  const steps = plan.map(([key, label]) => newStep(key, label));
-  let active = null;
+  const now = (label, subText, state) => {
+    $('now-label').textContent = label;
+    $('now-sub').textContent = subText || '';
+    $('now-ic').innerHTML = state === 'ok' ? CHECK : state === 'bad' ? IC.alert : state === 'wait' ? IC.wallet : '<span class="spin"></span>';
+    paint(state);
+  };
+  const stepLabel = () => (steps[at] ? steps[at].label : 'Working…');
+  const stepOf = () => (at >= 0 ? `Step ${Math.min(at + 1, steps.length)} of ${steps.length}` : '');
   const goStep = (key, label) => {
-    let s = steps.find((x) => x.key === key && !x.li.classList.contains('done'));
-    if (!s) steps.push((s = newStep(key, label || key)));
-    else if (label) s.li.querySelector('.lbl').textContent = label;
-    for (const x of steps) {
-      if (x === s) break;
-      x.li.className = 'done';
-      x.li.querySelector('.sub').textContent = '';
-    }
-    s.li.className = 'active';
-    active = s;
+    let i = steps.findIndex((x, n) => x.key === key && n >= at);
+    if (i < 0) i = steps.push({ key, label: label || key }) - 1;
+    else if (label) steps[i].label = label;
+    at = i;
+    now(stepLabel(), stepOf());
   };
-  const sub = (t) => active && (active.li.querySelector('.sub').textContent = t || '');
-  const allDone = () => steps.forEach((x) => ((x.li.className = 'done'), (x.li.querySelector('.sub').textContent = '')));
+  const sub = (t) => now(stepLabel(), t || stepOf());
   const resetSteps = () => {
-    steps.forEach((x) => ((x.li.className = ''), (x.li.querySelector('.sub').textContent = '')));
-    active = null;
+    at = -1;
+    now('Connecting to uWallet…', '');
   };
 
   const initial = (name) => ((name || 'N').match(/[\p{L}\p{N}]/u) || ['N'])[0].toUpperCase();
@@ -100,14 +104,14 @@
   };
 
   // ---------- what is being signed (read from the event) ----------
-  const approveBox = (m) => {
-    if (m.method === 'getPublicKey') return box('approve', IC.key, 'Share your public key', 'Approve in your Nostr extension.');
-    if (m.method === 'nip44.decrypt') return box('approve', IC.lock, 'Unlock your wallet backup', 'Approve in your Nostr extension.');
+  const approveText = (m) => {
+    if (m.method === 'getPublicKey') return 'Approve sharing your public key in your extension';
+    if (m.method === 'nip44.decrypt') return 'Approve unlocking your backup in your extension';
     const e = (m.params && m.params.event) || {};
     const isBackup = e.kind === 30078 && (e.tags || []).some((t) => t[0] === 'd' && t[1] === 'uwallet-backup');
-    if (isBackup && !e.content) return box('approve', IC.pen, 'Sign the backup removal', 'Approve in your Nostr extension. It replaces your backup with an empty one.');
-    if (isBackup) return box('approve', IC.pen, 'Sign your encrypted backup', 'Approve in your Nostr extension. Only your Nostr key can open it.');
-    return box('approve', IC.pen, `Sign a Nostr event (kind ${Number(e.kind)})`, 'Approve in your Nostr extension.');
+    if (isBackup && !e.content) return 'Approve signing the backup removal in your extension';
+    if (isBackup) return 'Approve signing your encrypted backup in your extension';
+    return `Approve signing a Nostr event (kind ${Number(e.kind)}) in your extension`;
   };
 
   const call = async (method, p) => {
@@ -124,19 +128,21 @@
   const askUser = (q) =>
     new Promise((resolve) => {
       busy(false);
-      const done = (v) => (document.body.classList.remove('asking'), panel(), busy(true), resolve(v));
+      const done = (v) => (panel(), busy(true), now(stepLabel(), stepOf()), resolve(v));
       const title = String(q.text || 'Continue?');
       const text = Array.isArray(q.points) ? q.points.map(String).join(' ') : '';
       // A few labelled answers (e.g. create / restore / another account). Only known values pass.
       const choices = Array.isArray(q.choices) ? q.choices.filter((c) => c && (c.value === true || c.value === false || c.value === 'restore')).slice(0, 4) : [];
       if (choices.length) {
-        // The question takes the place of the step list: the window is small.
-        document.body.classList.add('asking');
+        now(title, 'Choose how to continue', 'wait');
+        const ICON = { true: IC.bolt, restore: IC.key, false: IC.swap };
         const chev = '<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>';
-        const btns = choices.map((c) => c.primary
-          ? h('button', { class: 'btn primary', onclick: () => done(c.value) }, String(c.label || ''))
-          : h('button', { class: 'alt', onclick: () => done(c.value) }, h('span', {}, String(c.label || '')), h('span', { class: 'chev', html: chev })));
-        panel(h('div', { class: 'ask' }, h('b', {}, title), text ? h('p', {}, text) : null, h('div', { class: 'choices' }, btns)));
+        const btns = choices.map((c) =>
+          h('button', { class: `choice${c.primary ? ' primary' : ''}`, onclick: () => done(c.value) },
+            h('span', { class: 'ic', html: ICON[String(c.value)] }),
+            h('span', { class: 't' }, h('b', {}, String(c.label || '')), c.note ? h('small', {}, String(c.note)) : null),
+            h('span', { class: 'chev', html: chev })));
+        panel(h('div', { class: 'ask' }, text ? h('p', {}, text) : null, h('div', { class: 'choices' }, btns)));
         btns[0].focus();
         return;
       }
@@ -162,15 +168,15 @@
   const backBtn = () => (inWallet ? h('button', { class: 'btn', onclick: goBack }, 'Back to uWallet') : null);
   const fail = (text, retry) => {
     busy(false);
-    if (active) active.li.className = 'failed';
-    panel(box('bad', IC.alert, 'That didn’t work', text, h('div', { class: 'row' }, backBtn(), retry ? h('button', { class: 'btn primary', onclick: retry }, 'Try again') : null)));
+    now('That didn’t work', text, 'bad');
+    panel(h('div', { class: 'row' }, backBtn(), retry ? h('button', { class: 'btn primary', onclick: retry }, 'Try again') : null));
   };
 
   // ---------- session ----------
   const connect = () => {
     resetSteps();
     busy(true);
-    panel(waitBox('Connecting to uWallet…'));
+    panel();
     try {
       port = chrome.runtime.connect(ext, { name: 'uwallet-companion' });
     } catch {
@@ -188,31 +194,30 @@
       if (!m || typeof m !== 'object' || port !== p) return;
       if (m.who) return showWho(m.who);
       if (typeof m.step === 'string') {
-        goStep(m.step, typeof m.label === 'string' ? m.label : '');
-        if (!$('panel').querySelector('.approve')) panel();
-        return;
+        return goStep(m.step, typeof m.label === 'string' ? m.label : '');
       }
       if (typeof m.status === 'string') return sub(m.status);
       if (m.done) {
         finished = true;
-        allDone();
         busy(false);
         $('who').classList.add('ok');
-        return panel(box('done', IC.check, String(m.done), 'Returning to uWallet…'));
+        panel();
+        return now(String(m.done), 'Returning to uWallet…', 'ok');
       }
       if (m.fail)
         return fail(String(m.fail), () => {
           resetSteps();
           busy(true);
-          panel(waitBox('Trying again…'));
+          panel();
+          now('Trying again…', '');
           p.postMessage({ hello: session });
         });
       if (typeof m.id !== 'number') return;
       if (m.method === 'confirm') return p.postMessage({ id: m.id, result: await askUser(m.params || {}) });
-      panel(approveBox(m));
+      sub(approveText(m));
       try {
         const result = await call(m.method, m.params || {});
-        panel();
+        sub('');
         p.postMessage({ id: m.id, result });
       } catch (e) {
         p.postMessage({ id: m.id, error: (e && e.message) || String(e) || 'Rejected' });
@@ -223,12 +228,13 @@
 
   // Start as soon as the Nostr extension shows up (they inject window.nostr shortly after load).
   busy(true);
-  panel(waitBox('Looking for your Nostr extension…'));
+  now('Looking for your Nostr extension…', '');
   (async () => {
     for (let i = 0; i < 50 && !window.nostr; i++) await new Promise((r) => setTimeout(r, 100));
     if (window.nostr) return connect();
     busy(false);
-    panel(box('bad', IC.plug, 'No Nostr extension found', 'Install one, then reload this page.',
+    now('No Nostr extension found', 'Install one, then reload this page.', 'bad');
+    panel(h('div', { class: 'ask' },
       h('div', { class: 'links' },
         h('a', { href: 'https://getalby.com/', target: '_blank', rel: 'noreferrer' }, 'Alby'),
         h('a', { href: 'https://chromewebstore.google.com/detail/nos2x/kpgefcfmnafjgpblomihpgmejjdanjjp', target: '_blank', rel: 'noreferrer' }, 'nos2x'),
