@@ -38,7 +38,7 @@
   const box = (kind, icon, title, text, ...rest) =>
     h('div', { class: `box ${kind}` }, h('div', { class: 'box-head' }, h('span', { class: 'box-ic', html: icon }), h('div', { class: 'box-t' }, h('b', {}, title), text ? h('span', {}, text) : null)), ...rest);
   const waitBox = (text) => box('', '<span class="spin"></span>', text, '');
-  const busy = (on) => $('bridge').classList.toggle('busy', on);
+  const busy = (on) => $('who').classList.toggle('busy', on);
 
   const COPY = {
     login: ['Log in with Nostr', 'Open your uWallet with your Nostr key.', [['connect', 'Connect your Nostr key'], ['find', 'Find your wallet'], ['open', 'Unlock it']]],
@@ -53,7 +53,7 @@
   }
   const [title, lead, plan] = COPY[op];
   $('title').textContent = title;
-  $('lead').textContent = lead;
+  void lead; // the title says it; the step list shows the rest
   document.title = `${title} · uWallet`;
 
   // ---------- steps ----------
@@ -87,11 +87,16 @@
   const showWho = (w) => {
     if (!w || typeof w.npub !== 'string') return;
     const name = typeof w.name === 'string' && w.name.trim() ? w.name.trim().slice(0, 60) : 'Nostr account';
-    $('who').hidden = false;
     $('who-name').textContent = name;
     $('who-npub').textContent = `${w.npub.slice(0, 12)}…${w.npub.slice(-6)}`;
-    $('who-av').textContent = initial(name);
-    $('key-node').textContent = initial(name);
+    const av = $('who-av');
+    // The profile picture (https only); the initial until it loads or if it fails.
+    av.textContent = initial(name);
+    if (typeof w.picture === 'string' && /^https:\/\/\S+$/.test(w.picture) && w.picture.length < 2000) {
+      const img = h('img', { alt: '', referrerpolicy: 'no-referrer' });
+      img.onload = () => av.replaceChildren(img);
+      img.src = w.picture;
+    }
   };
 
   // ---------- what is being signed (read from the event) ----------
@@ -127,8 +132,11 @@
       if (choices.length) {
         // The question takes the place of the step list: the window is small.
         document.body.classList.add('asking');
-        const btns = choices.map((c) => h('button', { class: `choice${c.primary ? ' primary' : ''}`, onclick: () => done(c.value) }, h('b', {}, String(c.label || '')), c.note ? h('small', {}, String(c.note)) : null));
-        panel(box('ask', IC.help, title, text, h('div', { class: 'choices' }, btns)));
+        const chev = '<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>';
+        const btns = choices.map((c) => c.primary
+          ? h('button', { class: 'btn primary', onclick: () => done(c.value) }, String(c.label || ''))
+          : h('button', { class: 'alt', onclick: () => done(c.value) }, h('span', {}, String(c.label || '')), h('span', { class: 'chev', html: chev })));
+        panel(h('div', { class: 'ask' }, h('b', {}, title), text ? h('p', {}, text) : null, h('div', { class: 'choices' }, btns)));
         btns[0].focus();
         return;
       }
@@ -189,7 +197,7 @@
         finished = true;
         allDone();
         busy(false);
-        $('bridge').classList.add('ok');
+        $('who').classList.add('ok');
         return panel(box('done', IC.check, String(m.done), 'Returning to uWallet…'));
       }
       if (m.fail)

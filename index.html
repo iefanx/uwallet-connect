@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <!-- This page only passes requests between uWallet and your Nostr extension. It loads nothing
      from anywhere else and cannot send data to any server (connect-src 'none'). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; connect-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
 <title>uWallet · Nostr</title>
@@ -15,23 +15,17 @@
 <body>
 <header class="bar">
   <button class="icon-btn" id="back" aria-label="Back to uWallet" title="Back to uWallet" hidden><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg></button>
-  <span class="grow"></span>
+  <span class="bar-title" id="title">uWallet</span>
   <span class="icon-btn lock" title="Your Nostr key stays in your Nostr extension. This page can’t send data anywhere."><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
 </header>
 <main class="page" aria-live="polite">
-  <div class="bridge" id="bridge" aria-hidden="true">
-    <span class="node app"><svg viewBox="0 0 24 24"><path d="M13.5 2 4 13.5h6.5L9.5 22 20 9.5h-6.5z"/></svg></span>
-    <span class="wire"><i></i><i></i><i></i></span>
-    <span class="node key" id="key-node"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M15 8l2 2"/></svg></span>
+  <!-- One row: who is signing in (picture, name, npub), and a pulse while waiting. -->
+  <div id="who" class="who">
+    <span class="av" id="who-av"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M15 8l2 2"/></svg></span>
+    <span class="who-t"><b id="who-name">Connecting…</b><small id="who-npub">Your Nostr extension</small></span>
+    <span class="wire" aria-hidden="true"><i></i><i></i><i></i></span>
   </div>
-  <div class="head">
-    <h1 id="title">uWallet</h1>
-    <p id="lead" class="lead"></p>
-  </div>
-  <div id="who" class="who" hidden>
-    <span class="av" id="who-av"></span>
-    <span class="who-t"><b id="who-name"></b><small id="who-npub"></small></span>
-  </div>
+  <p id="lead" class="lead"></p>
   <ol id="steps" class="steps"></ol>
   <div id="panel" class="panel"></div>
 </main>
