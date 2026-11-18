@@ -119,9 +119,21 @@
   const askUser = (q) =>
     new Promise((resolve) => {
       busy(false);
-      const done = (v) => (panel(), busy(true), resolve(v));
+      const done = (v) => (document.body.classList.remove('asking'), panel(), busy(true), resolve(v));
+      const title = String(q.text || 'Continue?');
+      const text = Array.isArray(q.points) ? q.points.map(String).join(' ') : '';
+      // A few labelled answers (e.g. create / restore / another account). Only known values pass.
+      const choices = Array.isArray(q.choices) ? q.choices.filter((c) => c && (c.value === true || c.value === false || c.value === 'restore')).slice(0, 4) : [];
+      if (choices.length) {
+        // The question takes the place of the step list: the window is small.
+        document.body.classList.add('asking');
+        const btns = choices.map((c) => h('button', { class: `choice${c.primary ? ' primary' : ''}`, onclick: () => done(c.value) }, h('b', {}, String(c.label || '')), c.note ? h('small', {}, String(c.note)) : null));
+        panel(box('ask', IC.help, title, text, h('div', { class: 'choices' }, btns)));
+        btns[0].focus();
+        return;
+      }
       const yes = h('button', { class: 'btn primary', onclick: () => done(true) }, String(q.yes || 'Continue'));
-      panel(box('', IC.help, String(q.text || 'Continue?'), Array.isArray(q.points) ? q.points.map(String).join(' ') : '', h('div', { class: 'row' }, h('button', { class: 'btn', onclick: () => done(false) }, String(q.no || 'Cancel')), yes)));
+      panel(box('ask', IC.help, title, text, h('div', { class: 'row' }, h('button', { class: 'btn', onclick: () => done(false) }, String(q.no || 'Cancel')), yes)));
       yes.focus();
     });
 
