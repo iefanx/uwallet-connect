@@ -64,7 +64,7 @@
   let at = -1;
   const paint = (state) => {
     $('segs').replaceChildren(...steps.map((x, i) => h('i', { class: state === 'ok' || i < at ? 'done' : i === at ? (state === 'bad' ? 'bad' : 'active') : '' })));
-    $('track').className = `track ${state || ''}`;
+    $('track').className = `track ${state || ''}${$('track-ask').childElementCount ? ' asking' : ''}`;
   };
   const now = (label, subText, state) => {
     $('now-label').textContent = label;
@@ -84,8 +84,11 @@
   const sub = (t) => now(stepLabel(), t || stepOf());
   const resetSteps = () => {
     at = -1;
+    $('log').replaceChildren();
     now('Connecting to uWallet…', '');
   };
+  // What each finished step found or did, so the card reads as a short story.
+  const note = (t) => $('log').append(h('li', {}, h('span', { class: 'tick', html: IC.check }), String(t).slice(0, 120)));
 
   const initial = (name) => ((name || 'N').match(/[\p{L}\p{N}]/u) || ['N'])[0].toUpperCase();
   const showWho = (w) => {
@@ -128,13 +131,12 @@
   const askUser = (q) =>
     new Promise((resolve) => {
       busy(false);
-      const done = (v) => (panel(), busy(true), now(stepLabel(), stepOf()), resolve(v));
+      const done = (v) => ($('track-ask').replaceChildren(), panel(), busy(true), now(stepLabel(), stepOf()), resolve(v));
       const title = String(q.text || 'Continue?');
       const text = Array.isArray(q.points) ? q.points.map(String).join(' ') : '';
       // A few labelled answers (e.g. create / restore / another account). Only known values pass.
       const choices = Array.isArray(q.choices) ? q.choices.filter((c) => c && (c.value === true || c.value === false || c.value === 'restore')).slice(0, 4) : [];
       if (choices.length) {
-        now(title, 'Choose how to continue', 'wait');
         const ICON = { true: IC.bolt, restore: IC.key, false: IC.swap };
         const chev = '<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>';
         const btns = choices.map((c) =>
@@ -142,7 +144,9 @@
             h('span', { class: 'ic', html: ICON[String(c.value)] }),
             h('span', { class: 't' }, h('b', {}, String(c.label || '')), c.note ? h('small', {}, String(c.note)) : null),
             h('span', { class: 'chev', html: chev })));
-        panel(h('div', { class: 'ask' }, text ? h('p', {}, text) : null, h('div', { class: 'choices' }, btns)));
+        // The question becomes the card: the log steps aside, the answers sit inside it.
+        $('track-ask').replaceChildren(h('div', { class: 'choices' }, btns));
+        now(title, text || 'Choose how to continue', 'wait');
         btns[0].focus();
         return;
       }
@@ -197,6 +201,7 @@
         return goStep(m.step, typeof m.label === 'string' ? m.label : '');
       }
       if (typeof m.status === 'string') return sub(m.status);
+      if (typeof m.note === 'string') return note(m.note);
       if (m.done) {
         finished = true;
         busy(false);

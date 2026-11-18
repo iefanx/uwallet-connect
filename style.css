@@ -41,7 +41,6 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 
 .panel { margin-top: auto; }
 .panel:empty { display: none; }
-.panel:has(.ask) { margin-top: 0; }
 .box { border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px; background: var(--surface-2); animation: rise .2s ease-out; }
 .box.approve { background: var(--accent-soft); }
 .box.done { background: var(--ok-soft); }
@@ -132,3 +131,14 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 .choice.primary { border-color: var(--accent); background: var(--accent-soft); }
 .choice.primary .ic { background: var(--accent); color: #fff; }
 .choice.primary .ic svg { fill: #fff; stroke: none; }
+
+/* Finished steps, one line each. */
+.log { list-style: none; margin: 0; padding: 10px 0 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
+.log:empty { display: none; }
+.log li { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-2); animation: rise .2s ease-out; }
+.log .tick { width: 16px; height: 16px; border-radius: 50%; background: var(--ok-soft); color: var(--ok); display: grid; place-items: center; flex: none; }
+.log .tick svg { width: 10px; height: 10px; stroke-width: 3; }
+/* Asking: the question is the card; the log steps aside. */
+.track-ask:empty { display: none; }
+.track.asking .log { display: none; }
+.track.asking .segs { display: none; }
