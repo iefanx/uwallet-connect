@@ -1,6 +1,6 @@
 // uWallet ↔ Nostr bridge.
 //
-// uWallet opens this page (…/#ext=<id>&s=<session>&op=link|login|unlink) inside its own window,
+// uWallet opens this page (…/#ext=<id>&s=<session>&op=link|login|unlink|zap) inside its own window,
 // because Nostr extensions only work on web pages. The page connects back to uWallet and answers
 // its requests with your Nostr extension (NIP-07 window.nostr): your public key, a signature on
 // the encrypted backup, or decrypting that backup. What a signature means is read from the event
@@ -46,6 +46,7 @@
     login: ['Log in with Nostr', 'Open your uWallet with your Nostr key.', [['connect', 'Connect your Nostr key'], ['find', 'Find your wallet'], ['open', 'Unlock it']]],
     link: ['Link to Nostr', 'Back up this wallet to your Nostr account, encrypted.', [['connect', 'Connect your Nostr key'], ['sign', 'Encrypt your backup'], ['save', 'Save it to your relays']]],
     unlink: ['Unlink from Nostr', 'Remove this wallet’s backup from your Nostr account.', [['connect', 'Connect your Nostr key'], ['sign', 'Sign the removal'], ['save', 'Update your relays']]],
+    zap: ['Zap as you', 'Sign the zap with your Nostr key, so it shows with your name.', [['sign', 'Sign your zap'], ['pay', 'Send it']]],
   };
 
   if (!/^[a-p]{32}$/.test(ext) || !/^[A-Za-z0-9_-]{16,64}$/.test(session) || !COPY[op]) {
@@ -114,6 +115,11 @@
     const isBackup = e.kind === 30078 && (e.tags || []).some((t) => t[0] === 'd' && t[1] === 'uwallet-backup');
     if (isBackup && !e.content) return 'Approve signing the backup removal in your extension';
     if (isBackup) return 'Approve signing your encrypted backup in your extension';
+    if (e.kind === 9734) {
+      const msat = Number(((e.tags || []).find((t) => t[0] === 'amount') || [])[1]);
+      const sats = Number.isFinite(msat) && msat > 0 ? `${Math.round(msat / 1000).toLocaleString()}-sat ` : '';
+      return `Approve signing your ${sats}zap in your extension`;
+    }
     return `Approve signing a Nostr event (kind ${Number(e.kind)}) in your extension`;
   };
 
@@ -207,7 +213,12 @@
         busy(false);
         $('who').classList.add('ok');
         panel();
-        return now(String(m.done), 'Returning to uWallet…', 'ok');
+        return now(String(m.done), op === 'zap' ? 'You can close this window.' : 'Returning to uWallet…', 'ok');
+      }
+      if (m.fail && m.final) {
+        // A payment was attempted: never offer to sign (and pay) again from here.
+        finished = true;
+        return fail(String(m.fail));
       }
       if (m.fail)
         return fail(String(m.fail), () => {
