@@ -142,3 +142,24 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 .track-ask:empty { display: none; }
 .track.asking .log { display: none; }
 .track.asking .segs { display: none; }
+
+/* Zap: like uWallet's own screen (who, how much, a ring while it works). */
+.zapping .page { gap: 0; }
+.zv { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 36px 8px 8px; gap: 4px; }
+.zv-ring { position: relative; width: 92px; height: 92px; display: grid; place-items: center; margin-bottom: 14px; }
+.zv-ring::before { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 3px solid var(--accent-soft); border-top-color: var(--accent); animation: spin .9s linear infinite; }
+.zv-ring.ok::before { animation: none; border-color: var(--ok); }
+.zv-ring.bad::before, .zv-ring.wait::before { animation: none; border-color: var(--bad-soft); }
+.zv-av { position: relative; width: 74px; height: 74px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-strong); font-size: 28px; font-weight: 700; }
+.zv-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.zv-i svg { width: 30px; height: 30px; display: block; }
+.zv-badge { position: absolute; right: 2px; bottom: 2px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: #fff; box-shadow: 0 0 0 3px var(--bg); }
+.zv-badge svg { width: 14px; height: 14px; stroke-width: 2.4; }
+.zv-ring.ok .zv-badge { background: var(--ok); }
+.zv-ring.bad .zv-badge { background: var(--bad); }
+.zv h2 { margin: 0; font-size: 19px; letter-spacing: -0.01em; }
+.zv-amt { font-size: 28px; font-weight: 750; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-top: 4px; }
+.zv-amt:empty, .zv-to:empty, .zv-sub:empty { display: none; }
+.zv-to { color: var(--text-2); font-size: 13.5px; font-weight: 550; }
+.zv-sub { margin: 10px 0 0; color: var(--muted); font-size: 12.5px; max-width: 300px; overflow-wrap: anywhere; }
+.zv-ring.bad + h2 { color: var(--text); }

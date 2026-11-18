@@ -46,7 +46,7 @@
     login: ['Log in with Nostr', 'Open your uWallet with your Nostr key.', [['connect', 'Connect your Nostr key'], ['find', 'Find your wallet'], ['open', 'Unlock it']]],
     link: ['Link to Nostr', 'Back up this wallet to your Nostr account, encrypted.', [['connect', 'Connect your Nostr key'], ['sign', 'Encrypt your backup'], ['save', 'Save it to your relays']]],
     unlink: ['Unlink from Nostr', 'Remove this wallet’s backup from your Nostr account.', [['connect', 'Connect your Nostr key'], ['sign', 'Sign the removal'], ['save', 'Update your relays']]],
-    zap: ['Zap', 'Sign the zap with your Nostr key, so it shows with your name.', [['sign', 'Sign your zap'], ['pay', 'Send it']]],
+    zap: ['Zap', '', [['sign', 'Sign your zap'], ['pay', 'Send it']]],
   };
 
   if (!/^[a-p]{32}$/.test(ext) || !/^[A-Za-z0-9_-]{16,64}$/.test(session) || !COPY[op]) {
@@ -59,6 +59,53 @@
   void lead; // the title says it; the step list shows the rest
   document.title = `${title} · uWallet`;
 
+  // ---------- zap: looks like uWallet's own screen ----------
+  // Who gets it and how much, in a ring that spins while signing and sending. When it's sent,
+  // uWallet takes over and shows its own result screen.
+  const zapMode = op === 'zap';
+  const ZV = {};
+  if (zapMode) {
+    document.body.classList.add('zapping');
+    $('who').hidden = true;
+    $('track').hidden = true;
+    ZV.av = h('span', { class: 'zv-av' }, h('span', { class: 'zv-i', html: IC.bolt }));
+    ZV.badge = h('span', { class: 'zv-badge', html: IC.bolt });
+    ZV.ring = h('div', { class: 'zv-ring' }, ZV.av, ZV.badge);
+    ZV.title = h('h2', {}, 'Getting ready…');
+    ZV.amt = h('div', { class: 'zv-amt' });
+    ZV.to = h('div', { class: 'zv-to' });
+    ZV.sub = h('p', { class: 'zv-sub' });
+    $('panel').before(h('section', { class: 'zv' }, ZV.ring, ZV.title, ZV.amt, ZV.to, ZV.sub));
+  }
+  const ZAP_TITLE = { 'Sign your zap': 'Signing your zap', 'Send it': 'Sending your zap', 'That didn’t work': 'Zap not sent' };
+  const zapNow = (label, subText, state) => {
+    const key = steps[at] ? steps[at].key : '';
+    ZV.title.textContent = ZAP_TITLE[label] || label;
+    // Step counters and the generic "Approve …" lines become a plain hint for the current step.
+    let t = subText || '';
+    if (!t || /^Step \d/.test(t) || /^Approve /.test(t)) {
+      t = '';
+      if (!state && key === 'sign') t = 'Approve it in your Nostr extension';
+      if (!state && key === 'pay') t = 'This takes a few seconds';
+    }
+    ZV.sub.textContent = t;
+    ZV.ring.className = `zv-ring ${state || ''}`;
+    ZV.badge.innerHTML = state === 'ok' ? IC.check : state === 'bad' ? IC.alert : IC.bolt;
+  };
+  const showZap = (z) => {
+    if (!zapMode || !z || typeof z !== 'object') return;
+    const n = Number(z.amountSat);
+    if (Number.isFinite(n) && n > 0) ZV.amt.textContent = `${Math.round(n).toLocaleString()} sats`;
+    const to = typeof z.to === 'string' ? z.to.trim().slice(0, 60) : '';
+    if (to) ZV.to.textContent = `to ${to}`;
+    ZV.av.replaceChildren(h('span', { class: 'zv-i' }, ((to || 'N').match(/[\p{L}\p{N}]/u) || ['N'])[0].toUpperCase()));
+    if (typeof z.picture === 'string' && /^https:\/\/\S+$/.test(z.picture) && z.picture.length < 2000) {
+      const img = h('img', { alt: '', referrerpolicy: 'no-referrer' });
+      img.onload = () => ZV.av.replaceChildren(img);
+      img.src = z.picture;
+    }
+  };
+
   // ---------- progress: segments + the current step ----------
   const CHECK = '<svg viewBox="0 0 24 24"><path class="draw" d="M5 12.5 10 17 19 7.5"/></svg>';
   const steps = plan.map(([key, label]) => ({ key, label }));
@@ -68,6 +115,7 @@
     $('track').className = `track ${state || ''}${$('track-ask').childElementCount ? ' asking' : ''}`;
   };
   const now = (label, subText, state) => {
+    if (zapMode) return zapNow(label, subText, state);
     $('now-label').textContent = label;
     $('now-sub').textContent = subText || '';
     $('now-ic').innerHTML = state === 'ok' ? CHECK : state === 'bad' ? IC.alert : state === 'wait' ? IC.wallet : '<span class="spin"></span>';
@@ -202,6 +250,7 @@
     });
     p.onMessage.addListener(async (m) => {
       if (!m || typeof m !== 'object' || port !== p) return;
+      if (m.zap) return showZap(m.zap);
       if (m.who) return showWho(m.who);
       if (typeof m.step === 'string') {
         return goStep(m.step, typeof m.label === 'string' ? m.label : '');
@@ -213,7 +262,7 @@
         busy(false);
         $('who').classList.add('ok');
         panel();
-        return now(String(m.done), 'Returning to uWallet…', 'ok');
+        return now(String(m.done), zapMode ? '' : 'Returning to uWallet…', 'ok');
       }
       if (m.fail && m.final) {
         // A payment was attempted: never offer to sign (and pay) again from here.
