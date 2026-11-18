@@ -87,13 +87,6 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 
 /* Progress: a segment per step that fills in, and the current step in words. */
 .track { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); }
-.segs { display: flex; gap: 6px; }
-.segs i { flex: 1; height: 4px; border-radius: 4px; background: var(--surface-2); position: relative; overflow: hidden; }
-.segs i::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .45s cubic-bezier(.2,.8,.2,1), background .3s; }
-.segs i.done::after { transform: scaleX(1); }
-.segs i.active::after { transform: scaleX(.45); animation: seg 1.4s ease-in-out infinite; }
-.segs i.bad::after { transform: scaleX(1); background: var(--bad); }
-.track.ok .segs i::after { background: var(--ok); }
 @keyframes seg { 0%, 100% { transform: scaleX(.3); } 50% { transform: scaleX(.75); } }
 .now { display: flex; align-items: center; gap: 12px; min-height: 40px; }
 .now-ic { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; flex: none; background: var(--accent-soft); color: var(--accent-strong); }
@@ -109,7 +102,6 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 .track.bad .now-ic { background: var(--bad-soft); color: var(--bad); }
 .track.bad .now-t small { color: var(--text-2); }
 .track.wait .now-ic { background: var(--surface-2); color: var(--text-2); }
-.track.wait .segs i.active::after { animation: none; transform: scaleX(.5); }
 .draw { stroke-dasharray: 24; stroke-dashoffset: 24; animation: draw .4s .12s ease-out forwards; }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 @keyframes pop { from { transform: scale(.6); opacity: 0; } }
@@ -133,15 +125,26 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 .choice.primary .ic svg { fill: #fff; stroke: none; }
 
 /* Finished steps, one line each. */
-.log { list-style: none; margin: 0; padding: 10px 0 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
-.log:empty { display: none; }
-.log li { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-2); animation: rise .2s ease-out; }
-.log .tick { width: 16px; height: 16px; border-radius: 50%; background: var(--ok-soft); color: var(--ok); display: grid; place-items: center; flex: none; }
-.log .tick svg { width: 10px; height: 10px; stroke-width: 3; }
 /* Asking: the question is the card; the log steps aside. */
 .track-ask:empty { display: none; }
-.track.asking .log { display: none; }
-.track.asking .segs { display: none; }
+/* Every step by name: done (with what it found), now, still to come. */
+.steps { list-style: none; margin: 0; padding: 12px 0 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px; }
+.steps:empty { display: none; }
+.steps li { display: flex; align-items: flex-start; gap: 10px; padding: 5px 0; position: relative; }
+.steps li:not(:last-child)::before { content: ""; position: absolute; left: 9px; top: 27px; bottom: -5px; width: 2px; border-radius: 2px; background: var(--surface-2); }
+.steps li.done:not(:last-child)::before { background: var(--ok-soft); }
+.st-ic { width: 20px; height: 20px; border-radius: 50%; flex: none; display: grid; place-items: center; background: var(--surface-2); color: var(--muted); transition: background .25s, color .25s; }
+.st-ic svg { width: 11px; height: 11px; stroke-width: 3; }
+.st-ic .spin { width: 12px; height: 12px; }
+.steps li.done .st-ic { background: var(--ok-soft); color: var(--ok); }
+.steps li.active .st-ic { background: var(--accent-soft); color: var(--accent-strong); }
+.steps li.bad .st-ic { background: var(--bad-soft); color: var(--bad); }
+.st-t { display: flex; flex-direction: column; gap: 1px; min-width: 0; padding-top: 1px; }
+.st-t b { font-size: 13px; font-weight: 500; color: var(--muted); }
+.steps li.done .st-t b, .steps li.active .st-t b, .steps li.bad .st-t b { color: var(--text); }
+.steps li.active .st-t b { font-weight: 600; }
+.st-t small { font-size: 12px; color: var(--text-2); overflow-wrap: anywhere; }
+.track.asking .steps { display: none; }
 
 /* Zap: like uWallet's own screen (who, how much, a ring while it works). */
 .zapping .page { gap: 0; }

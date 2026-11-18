@@ -106,14 +106,24 @@
     }
   };
 
-  // ---------- progress: segments + the current step ----------
-  const CHECK = '<svg viewBox="0 0 24 24"><path class="draw" d="M5 12.5 10 17 19 7.5"/></svg>';
-  const steps = plan.map(([key, label]) => ({ key, label }));
+  // ---------- progress: the current step in words, then every step by name ----------
+  // Each step shows done (with what it found), in progress, or still to come. Steps the
+  // wallet adds on the way (saving a backup, allowing zaps) slot into the list in order.
+  const steps = plan.map(([key, label]) => ({ key, label, note: '' }));
   let at = -1;
+  let painted = '';
   const paint = (state) => {
-    $('segs').replaceChildren(...steps.map((x, i) => h('i', { class: state === 'ok' || i < at ? 'done' : i === at ? (state === 'bad' ? 'bad' : 'active') : '' })));
+    painted = state || '';
+    $('steps').replaceChildren(
+      ...steps.map((x, i) => {
+        const st = state === 'ok' || i < at ? 'done' : i === at ? (state === 'bad' ? 'bad' : state === 'wait' ? 'wait' : 'active') : '';
+        const ic = st === 'done' ? IC.check : st === 'bad' ? IC.alert : st === 'active' ? '<span class="spin"></span>' : '';
+        return h('li', { class: st }, h('span', { class: 'st-ic', html: ic }), h('span', { class: 'st-t' }, h('b', {}, x.label), x.note ? h('small', {}, x.note) : null));
+      }),
+    );
     $('track').className = `track ${state || ''}${$('track-ask').childElementCount ? ' asking' : ''}`;
   };
+  const CHECK = '<svg viewBox="0 0 24 24"><path class="draw" d="M5 12.5 10 17 19 7.5"/></svg>';
   const now = (label, subText, state) => {
     if (zapMode) return zapNow(label, subText, state);
     $('now-label').textContent = label;
@@ -122,7 +132,16 @@
     paint(state);
   };
   const stepLabel = () => (steps[at] ? steps[at].label : 'Working…');
-  const stepOf = () => (at >= 0 ? `Step ${Math.min(at + 1, steps.length)} of ${steps.length}` : '');
+  // A hint under the current step, until the wallet says something more specific.
+  const HINT = {
+    connect: 'Approve in your Nostr extension if it asks',
+    find: 'Looking on your relays',
+    open: 'Approve in your Nostr extension if it asks',
+    sign: 'Approve in your Nostr extension if it asks',
+    save: 'Publishing to your relays',
+    zaps: 'Choose “always allow” so zaps don’t ask each time',
+  };
+  const stepOf = () => (steps[at] && HINT[steps[at].key]) || '';
   const goStep = (key, label) => {
     let i = steps.findIndex((x, n) => x.key === key && n >= at);
     if (i < 0) i = steps.push({ key, label: label || key }) - 1;
@@ -133,11 +152,15 @@
   const sub = (t) => now(stepLabel(), t || stepOf());
   const resetSteps = () => {
     at = -1;
-    $('log').replaceChildren();
+    for (const x of steps) x.note = '';
     now('Connecting to uWallet…', '');
   };
-  // What each finished step found or did, so the card reads as a short story.
-  const note = (t) => $('log').append(h('li', {}, h('span', { class: 'tick', html: IC.check }), String(t).slice(0, 120)));
+  // What the current step found or did, shown under it ("Checked 5 relays · backup found").
+  const note = (t) => {
+    const x = steps[Math.max(at, 0)];
+    if (x) x.note = String(t).slice(0, 120);
+    paint(painted);
+  };
 
   const initial = (name) => ((name || 'N').match(/[\p{L}\p{N}]/u) || ['N'])[0].toUpperCase();
   const showWho = (w) => {
