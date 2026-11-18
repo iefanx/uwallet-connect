@@ -46,7 +46,7 @@
     login: ['Log in with Nostr', 'Open your uWallet with your Nostr key.', [['connect', 'Connect your Nostr key'], ['find', 'Find your wallet'], ['open', 'Unlock it']]],
     link: ['Link to Nostr', 'Back up this wallet to your Nostr account, encrypted.', [['connect', 'Connect your Nostr key'], ['sign', 'Encrypt your backup'], ['save', 'Save it to your relays']]],
     unlink: ['Unlink from Nostr', 'Remove this wallet’s backup from your Nostr account.', [['connect', 'Connect your Nostr key'], ['sign', 'Sign the removal'], ['save', 'Update your relays']]],
-    zap: ['Zap as you', 'Sign the zap with your Nostr key, so it shows with your name.', [['sign', 'Sign your zap']]],
+    zap: ['Zap', 'Sign the zap with your Nostr key, so it shows with your name.', [['sign', 'Sign your zap'], ['pay', 'Send it']]],
   };
 
   if (!/^[a-p]{32}$/.test(ext) || !/^[A-Za-z0-9_-]{16,64}$/.test(session) || !COPY[op]) {
